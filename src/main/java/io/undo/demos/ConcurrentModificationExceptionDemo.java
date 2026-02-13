@@ -2,12 +2,14 @@ package io.undo.demos;
 
 import java.util.*;
 import java.util.concurrent.locks.LockSupport;
+import java.util.logging.Logger;
 
 /**
  * Demonstrates ConcurrentModificationException by iterating over a shared ArrayList while other
  * threads modify it concurrently.
  */
 public class ConcurrentModificationExceptionDemo {
+    static final Logger logger = Logger.getLogger(ConcurrentModificationExceptionDemo.class.getName());
     static List<String> list = new ArrayList<>(Collections.nCopies(20, "item"));
 
     public static void main(String[] args) {
@@ -27,7 +29,7 @@ public class ConcurrentModificationExceptionDemo {
                     if (s == null) throw new AssertionError("unexpected null");
                 }
             } catch (ConcurrentModificationException | NoSuchElementException e) {
-                System.out.println("caught " + e + " with i = " + i);
+                logger.severe("caught " + e + " with i = " + i);
                 System.exit(0);
             }
         }
