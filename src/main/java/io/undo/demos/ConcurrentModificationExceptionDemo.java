@@ -13,6 +13,8 @@ public class ConcurrentModificationExceptionDemo {
     static List<String> list = new ArrayList<>(Collections.nCopies(20, "item"));
 
     public static void main(String[] args) {
+        System.setProperty("java.util.logging.SimpleFormatter.format",
+                "%1$tF %1$tT.%1$tL %4$s: %5$s%6$s%n");
         new Thread(
                         () -> {
                             while (true) {
