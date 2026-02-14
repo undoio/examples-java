@@ -28,6 +28,16 @@ The API Gateway and Customers Service are instrumented with UndoLR for on-demand
 
 ## Build
 
+**First-time setup**: Copy the LiveRecorder API JAR from your Undo installation:
+
+```bash
+cp ${LR4J_HOME}/lr4j-record-1.0/lr4j_api-1.1.jar .
+```
+
+This JAR is required for the recording control API used by the instrumented services.
+
+Then build the project:
+
 ```bash
 mvn clean package -DskipTests
 ```

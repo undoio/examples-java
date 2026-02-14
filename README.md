@@ -21,6 +21,46 @@ mvn compile
 | ReentrantModificationExceptionDemo | Single-threaded reentrant modification via synchronized callbacks - all methods are synchronized yet it still throws ConcurrentModificationException | `mvn compile exec:java -Dexec.mainClass=io.undo.demos.ReentrantModificationExceptionDemo` |
 | WaitNotifyDemo | Producer silently stops calling notify(), leaving its consumer stuck in wait() forever. Hard to debug because the stuck thread's stack just shows wait() with no clue why | `mvn compile exec:java -Dexec.mainClass=io.undo.demos.WaitNotifyDemo` |
 
+## Debugging with Claude Code
+
+You can use [Claude Code](https://docs.anthropic.com/en/docs/claude-code) to interactively debug
+Undo recordings via an MCP server. Claude can read console output, navigate the recording,
+set breakpoints and watchpoints, and travel backwards in time to find root causes.
+
+### 1. Convert your license key
+
+Claude Code requires a PEM-format key file. If you have a binary `.key` file,
+convert it first:
+
+```bash
+./scripts/convert_key.sh /path/to/binary.key /path/to/license.pem
+```
+
+### 2. Add the MCP server to Claude Code
+
+Register the recording as an MCP server so Claude can debug it:
+
+```bash
+claude mcp add ConcurrentModificationExceptionDemo \
+    -e BRIDGELOG=ConcurrentModificationExceptionDemo-bridge.log \
+    -- $LR4J_HOME/lr4j-replay-1.0/lr4j/lr4j_mcp \
+    --input ConcurrentModificationExceptionDemo.undo \
+    --key /path/to/license.pem
+```
+
+Replace `/path/to/license.pem` with the path to your converted PEM key file,
+and set `$LR4J_HOME` to the directory containing your lr4j installation.
+
+### 3. Start debugging
+
+Launch `claude` and ask:
+
+> Read the console messages, figure out what happened, and go to the root cause.
+
+Claude will read the program output, identify the exception, set appropriate
+breakpoints and watchpoints, and use time-travel debugging to trace back to the
+root cause of the bug.
+
 ## Scripting Demo: WaitNotifyDemo
 
 The `scripts/` directory contains Python scripts that use Undo's scripting API to
