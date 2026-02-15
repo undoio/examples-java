@@ -12,6 +12,8 @@ DEMOS=(
     ConcurrentModificationExceptionDemo
     ReentrantModificationExceptionDemo
     WaitNotifyDemo
+    WheresWally
+    MixedHotspot
 )
 
 usage() {

@@ -11,7 +11,10 @@ Outputs:
   STUCK_THREAD=Consumer-N
   SKIP_BBCOUNT=<bbcount where notify was skipped>
 """
+import os
 import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(sys.argv[1]), 'demos', 'python'))
 from undo_mcp import Session
 
 # Line number where producer skips notify (update if WaitNotifyDemo.java changes)

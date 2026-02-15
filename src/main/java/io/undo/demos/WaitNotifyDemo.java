@@ -23,10 +23,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class WaitNotifyDemo {
 
-    private static final int NUM_PAIRS = 10;
-    private static final int ITERATIONS_PER_PRODUCER = 500;
+    private static final int NUM_PAIRS = 5;
+    private static final int ITERATIONS_PER_PRODUCER = 100;
     private static final int TOTAL_ITERATIONS = NUM_PAIRS * ITERATIONS_PER_PRODUCER;
-    private static final int SKIP_NOTIFY_AT_COUNT = TOTAL_ITERATIONS / 2;
+    private static final int SKIP_NOTIFY_AT_COUNT = ITERATIONS_PER_PRODUCER / 4;
 
     private static final AtomicInteger globalCount = new AtomicInteger();
 
