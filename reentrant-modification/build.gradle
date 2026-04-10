@@ -11,14 +11,13 @@ repositories {
 }
 
 application {
-    mainClass = providers.gradleProperty('mainClass')
-        .orElse('io.undo.demos.ConcurrentModificationExceptionDemo')
+    mainClass = 'io.undo.demos.ReentrantModificationExceptionDemo'
 }
 
-// Run a demo and record the entire execution.
-//   gradle runRecord -PmainClass=io.undo.demos.WheresWally
+// Run the demo and record the entire execution.
+//   gradle runRecord
 tasks.register('runRecord', JavaExec) {
-    description = 'Run a demo with Undo recording (save_on=exit). Requires LR4J_HOME.'
+    description = 'Run the demo with Undo recording (save_on=always). Requires LR4J_HOME.'
     group = 'application'
     classpath = sourceSets.main.runtimeClasspath
     mainClass = application.mainClass
@@ -31,9 +30,10 @@ tasks.register('runRecord', JavaExec) {
         def arch = System.getProperty('os.arch')
         def lib = arch == 'aarch64' ? 'lr4j_agent_arm64.so' : 'lr4j_agent_x64.so'
         def agent = "${lr4jHome}/agent/${lib}"
-        jvmArgs "-XX:-Inline", "-XX:TieredStopAtLevel=1", "-XX:UseAVX=2",
-                "-agentpath:${agent}=save_on=exit"
+        def recording = "${mainClass.get().tokenize('.')[-1]}.undo"
+        def recordArgs = ["-XX:-Inline", "-XX:TieredStopAtLevel=1", "-XX:UseAVX=2",
+                "-agentpath:${agent}=save_on=always,output=${recording}"]
+        jvmArgs recordArgs
+        println "java ${recordArgs.join(' ')} -cp <classpath> ${mainClass.get()}"
     }
 }
-
-// Run any demo:  gradle run -PmainClass=io.undo.demos.WheresWally

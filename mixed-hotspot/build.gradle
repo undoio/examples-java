@@ -1,0 +1,39 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'io.undo.demos'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+application {
+    mainClass = 'io.undo.demos.MixedHotspot'
+}
+
+// Run the demo and record the entire execution.
+//   gradle runRecord
+tasks.register('runRecord', JavaExec) {
+    description = 'Run the demo with Undo recording (save_on=always). Requires LR4J_HOME.'
+    group = 'application'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = application.mainClass
+
+    doFirst {
+        def lr4jHome = System.getenv('LR4J_HOME')
+        if (lr4jHome == null) {
+            throw new GradleException('LR4J_HOME environment variable is not set')
+        }
+        def arch = System.getProperty('os.arch')
+        def lib = arch == 'aarch64' ? 'lr4j_agent_arm64.so' : 'lr4j_agent_x64.so'
+        def agent = "${lr4jHome}/agent/${lib}"
+        def recording = "${mainClass.get().tokenize('.')[-1]}.undo"
+        def recordArgs = ["-XX:-Inline", "-XX:TieredStopAtLevel=1", "-XX:UseAVX=2",
+                "-agentpath:${agent}=save_on=always,output=${recording}"]
+        jvmArgs recordArgs
+        println "java ${recordArgs.join(' ')} -cp <classpath> ${mainClass.get()}"
+    }
+}

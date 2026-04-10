@@ -1,0 +1,58 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.undo.demos</groupId>
+    <artifactId>wheres-wally-demo</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <name>wheres-wally-demo</name>
+
+    <properties>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <exec.mainClass>io.undo.demos.WheresWally</exec.mainClass>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>record</id>
+            <properties>
+                <lr4j.agent>${env.LR4J_HOME}/agent/lr4j_agent_x64.so</lr4j.agent>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <configuration>
+                            <arguments>
+                                <argument>-XX:-Inline</argument>
+                                <argument>-XX:TieredStopAtLevel=1</argument>
+                                <argument>-XX:UseAVX=2</argument>
+                                <argument>-agentpath:${lr4j.agent}=save_on=always,output=WheresWally.undo</argument>
+                                <argument>-classpath</argument>
+                                <classpath/>
+                                <argument>${exec.mainClass}</argument>
+                            </arguments>
+                            <executable>java</executable>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

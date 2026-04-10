@@ -4,15 +4,16 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.undo.demos</groupId>
-    <artifactId>java-demos</artifactId>
+    <artifactId>mixed-hotspot-demo</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>java-demos</name>
+    <name>mixed-hotspot-demo</name>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <exec.mainClass>io.undo.demos.MixedHotspot</exec.mainClass>
     </properties>
 
     <build>
@@ -42,7 +43,7 @@
                                 <argument>-XX:-Inline</argument>
                                 <argument>-XX:TieredStopAtLevel=1</argument>
                                 <argument>-XX:UseAVX=2</argument>
-                                <argument>-agentpath:${lr4j.agent}=save_on=exit</argument>
+                                <argument>-agentpath:${lr4j.agent}=save_on=always,output=MixedHotspot.undo</argument>
                                 <argument>-classpath</argument>
                                 <classpath/>
                                 <argument>${exec.mainClass}</argument>
