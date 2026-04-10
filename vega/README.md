@@ -70,20 +70,24 @@ internal pub/sub messaging, and lightweight management protocols.
 ## Prerequisites
 
 - Java 8 or later
-- Maven 3.6+
+- Maven 3.6+ or Gradle 7+
 
 ## Building
 
 ```bash
 cd vega
-mvn clean package
+mvn clean package    # Maven
+gradle build         # Gradle
 ```
 
 ## Running
 
 ```bash
-# Via Maven
+# Maven
 mvn exec:java
+
+# Gradle
+gradle run
 
 # Via JAR
 java -jar target/vega-1.0-SNAPSHOT.jar
@@ -149,18 +153,54 @@ This is designed as a time-travel debugging exercise:
    observe `bsPrice >> marketPrice` but `lo = mid` is executed instead of
    `hi = mid`
 
+### Recording with Undo
+
+Vega is a long-running server, so rather than recording the entire execution
+from startup, use signal-controlled recording to capture a window of
+steady-state operation. The lr4j agent loads but does not record until you
+tell it to via a command file and SIGQUIT.
+
+**1. Launch with the recording agent:**
+
+```bash
+# Maven
+mvn compile exec:exec -Precord
+
+# Gradle
+gradle runRecord
+```
+
+The command file path is printed on startup (Gradle) or is `vega_cmd.txt` in
+the project directory (Maven). Set `LR4J_HOME` to your lr4j installation.
+
+**2. Wait for steady state** (a few seconds for feeds to start publishing).
+
+**3. Start recording:**
+```bash
+echo START > /path/to/command_file.txt
+kill -3 $(pgrep -f VegaServer)
+```
+
+**4. Let it run** for 10-30 seconds to capture enough activity (including the bug).
+
+**5. Save the recording and stop:**
+```bash
+echo 'SAVE_AND_STOP vega.undo' > /path/to/command_file.txt
+kill -3 $(pgrep -f VegaServer)
+```
+
+`kill -3` sends SIGQUIT, which tells the lr4j agent to read the command file.
+`START` begins recording and `SAVE_AND_STOP` writes the recording to disk.
+This is the same mechanism used in production to capture snapshots of
+long-running services without restarting them.
+
 ### Debugging with Claude Code
 
 You can use [Claude Code](https://docs.anthropic.com/en/docs/claude-code) to
 interactively debug an Undo recording of Vega via an MCP server. Record the
-application, register the recording, and ask Claude to investigate:
+application using the steps above, then register the recording:
 
 ```bash
-# Record
-java -javaagent:${LR4J_HOME}/lr4j-record-1.0/lr4j_agent_x64.so=save_on=exit \
-    -jar target/vega-1.0-SNAPSHOT.jar
-
-# Register the recording as an MCP server
 claude mcp add VegaServer \
     -e BRIDGELOG=VegaServer-bridge.log \
     -- $LR4J_HOME/lr4j-replay-1.0/lr4j/lr4j_mcp \

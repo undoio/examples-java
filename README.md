@@ -4,25 +4,122 @@ Java demo programs for debugging and profiling demonstrations.
 
 ## Prerequisites
 
-- Java 17+
-- Maven 3.6+
+- Java 8+
+- Maven 3.6+ or Gradle 7+
 
 ## Build
 
 ```bash
-mvn compile
+mvn compile          # Maven
+gradle compileJava   # Gradle
 ```
 
 ## Demos
 
-| Demo | What it demonstrates | How to run |
-|------|---------------------|------------|
-| ConcurrentModificationExceptionDemo | Multi-threaded modification of a shared ArrayList causes ConcurrentModificationException | `mvn compile exec:java -Dexec.mainClass=io.undo.demos.ConcurrentModificationExceptionDemo` |
-| ReentrantModificationExceptionDemo | Single-threaded reentrant modification via synchronized callbacks - all methods are synchronized yet it still throws ConcurrentModificationException | `mvn compile exec:java -Dexec.mainClass=io.undo.demos.ReentrantModificationExceptionDemo` |
-| WaitNotifyDemo | Producer silently stops calling notify(), leaving its consumer stuck in wait() forever. Hard to debug because the stuck thread's stack just shows wait() with no clue why | `mvn compile exec:java -Dexec.mainClass=io.undo.demos.WaitNotifyDemo` |
-| WheresWally | Hides "Wally" among 5,000 generated names, writes to stdout and a temp file. Simple target for demonstrating precise execution navigation and syscall analysis | `mvn compile exec:java -Dexec.mainClass=io.undo.demos.WheresWally` |
-| MixedHotspot | Four distinct CPU workloads (prime sieve, SHA-256, string/regex, array sorting) that produce different signatures in Java and native profilers | `mvn compile exec:java -Dexec.mainClass=io.undo.demos.MixedHotspot` |
-| [Vega](vega/) | Multi-threaded options analytics engine — simulates exchange feeds, computes implied volatility via Black-Scholes, and maintains live vol surfaces. Contains an intentional bisection convergence bug for time-travel debugging | `cd vega && mvn exec:java` |
+Each demo can be run with either Maven or Gradle:
+
+| Demo | What it demonstrates |
+|------|---------------------|
+| ConcurrentModificationExceptionDemo | Multi-threaded modification of a shared ArrayList causes ConcurrentModificationException |
+| ReentrantModificationExceptionDemo | Single-threaded reentrant modification via synchronized callbacks - all methods are synchronized yet it still throws ConcurrentModificationException |
+| WaitNotifyDemo | Producer silently stops calling notify(), leaving its consumer stuck in wait() forever. Hard to debug because the stuck thread's stack just shows wait() with no clue why |
+| WheresWally | Hides "Wally" among 5,000 generated names, writes to stdout and a temp file. Simple target for demonstrating precise execution navigation and syscall analysis |
+| MixedHotspot | Four distinct CPU workloads (prime sieve, SHA-256, string/regex, array sorting) that produce different signatures in Java and native profilers |
+| [Vega](vega/) | Multi-threaded options analytics engine — simulates exchange feeds, computes implied volatility via Black-Scholes, and maintains live vol surfaces. Contains an intentional bisection convergence bug for time-travel debugging |
+
+### Running a demo
+
+**Maven:**
+```bash
+mvn compile exec:java -Dexec.mainClass=io.undo.demos.WheresWally
+```
+
+**Gradle:**
+```bash
+gradle run -PmainClass=io.undo.demos.WheresWally
+```
+
+**Vega** (runs in its own directory):
+```bash
+cd vega
+mvn exec:java        # Maven
+gradle run           # Gradle
+```
+
+## Recording with Undo
+
+The demos can optionally be run under the Undo LiveRecorder agent to produce
+`.undo` recording files for time-travel debugging. Set `LR4J_HOME` to your
+lr4j installation directory.
+
+### Simple demos (save_on=exit)
+
+The short-lived demos record the entire execution and save on exit:
+
+**Maven:**
+```bash
+mvn compile exec:exec -Precord -Dexec.mainClass=io.undo.demos.WheresWally
+```
+
+**Gradle:**
+```bash
+gradle runRecord -PmainClass=io.undo.demos.WheresWally
+```
+
+On arm64, override the agent library path:
+
+```bash
+# Maven
+mvn compile exec:exec -Precord -Dlr4j.agent=$LR4J_HOME/lr4j-record-1.0/lr4j_agent_arm64.so \
+    -Dexec.mainClass=io.undo.demos.WheresWally
+
+# Gradle (auto-detected)
+```
+
+### Vega (signal-controlled recording)
+
+Vega is a long-running server, so instead of recording the entire execution
+from startup, you use signal-controlled recording to capture a window of
+steady-state operation. The agent is loaded but does not record until you
+tell it to.
+
+**1. Launch with the recording agent:**
+
+**Maven:**
+```bash
+cd vega
+mvn compile exec:exec -Precord
+```
+
+**Gradle:**
+```bash
+cd vega
+gradle runRecord
+```
+
+The command file path is printed on startup (Gradle) or is
+`vega_cmd.txt` in the project directory (Maven).
+
+**2. Wait for steady state** (a few seconds for feeds to start publishing).
+
+**3. Start recording:**
+```bash
+echo START > /path/to/command_file.txt
+kill -3 $(pgrep -f VegaServer)
+```
+
+**4. Let it run** for 10-30 seconds to capture the bug.
+
+**5. Save the recording and stop:**
+```bash
+echo 'SAVE_AND_STOP vega.undo' > /path/to/command_file.txt
+kill -3 $(pgrep -f VegaServer)
+```
+
+The `kill -3` sends SIGQUIT, which tells the lr4j agent to read the command
+file. The agent interprets `START` to begin recording, and `SAVE_AND_STOP`
+to write the recording to disk. This is the same mechanism used in production
+to capture snapshots of long-running services without restarting them.
 
 ## Debugging with Claude Code
 
@@ -41,12 +138,7 @@ convert it first:
 ./scripts/convert_key.sh /path/to/binary.key /path/to/license.pem
 ```
 
-**2. Record the demo**
-
-```bash
-java -javaagent:${LR4J_HOME}/lr4j-record-1.0/lr4j_agent_x64.so=save_on=exit \
-    -cp target/classes io.undo.demos.DemoName
-```
+**2. Record the demo** (see [Recording with Undo](#recording-with-undo) above).
 
 **3. Register the recording as an MCP server**
 

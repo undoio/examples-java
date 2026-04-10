@@ -1,0 +1,64 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'io.undo.test'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'log4j:log4j:1.2.17'
+    implementation 'org.slf4j:slf4j-api:1.7.36'
+    implementation 'org.slf4j:slf4j-log4j12:1.7.36'
+
+    testImplementation 'junit:junit:4.13.2'
+}
+
+application {
+    mainClass = 'io.undo.test.vega.server.VegaServer'
+}
+
+// Launch Vega with signal-controlled recording.
+// Recording does not start automatically — use the printed commands to control it.
+//   gradle runRecord
+tasks.register('runRecord', JavaExec) {
+    description = 'Launch Vega with Undo signal-controlled recording. Requires LR4J_HOME.'
+    group = 'application'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = application.mainClass
+
+    doFirst {
+        def lr4jHome = System.getenv('LR4J_HOME')
+        if (lr4jHome == null) {
+            throw new GradleException('LR4J_HOME environment variable is not set')
+        }
+        def arch = System.getProperty('os.arch')
+        def lib = arch == 'aarch64' ? 'lr4j_agent_arm64.so' : 'lr4j_agent_x64.so'
+        def agent = "${lr4jHome}/lr4j-record-1.0/${lib}"
+
+        def commandFile = File.createTempFile('vega_cmd_', '.txt')
+        commandFile.deleteOnExit()
+        def cmdPath = commandFile.absolutePath
+        jvmArgs "-javaagent:${agent}=command_filename=${cmdPath}"
+
+        println ''
+        println '============================================================'
+        println ' Vega launched with signal-controlled recording.'
+        println " Command file: ${cmdPath}"
+        println ''
+        println ' After the server reaches steady state, use these commands'
+        println ' in another terminal to control recording:'
+        println ''
+        println "   Start recording:"
+        println "     echo START > ${cmdPath} && kill -3 \$(pgrep -f VegaServer)"
+        println ''
+        println "   Save recording and stop:"
+        println "     echo 'SAVE_AND_STOP vega.undo' > ${cmdPath} && kill -3 \$(pgrep -f VegaServer)"
+        println '============================================================'
+        println ''
+    }
+}
