@@ -38,27 +38,24 @@ tasks.register('runRecord', JavaExec) {
         }
         def arch = System.getProperty('os.arch')
         def lib = arch == 'aarch64' ? 'lr4j_agent_arm64.so' : 'lr4j_agent_x64.so'
-        def agent = "${lr4jHome}/lr4j-record-1.0/${lib}"
+        def agent = "${lr4jHome}/agent/${lib}"
 
-        def commandFile = File.createTempFile('vega_cmd_', '.txt')
-        commandFile.deleteOnExit()
-        def cmdPath = commandFile.absolutePath
-        jvmArgs "-javaagent:${agent}=command_filename=${cmdPath}"
+        def cmdPath = "${project.projectDir}/vega_cmd.txt"
+        def logFile = file("${project.projectDir}/vega.log")
+        jvmArgs "-XX:-Inline", "-XX:TieredStopAtLevel=1", "-XX:UseAVX=2",
+                "-agentpath:${agent}=command_filename=${cmdPath}"
+        standardOutput = new FileOutputStream(logFile)
+        errorOutput = standardOutput
 
         println ''
         println '============================================================'
         println ' Vega launched with signal-controlled recording.'
-        println " Command file: ${cmdPath}"
+        println " Log output:  ${logFile}"
         println ''
-        println ' After the server reaches steady state, use these commands'
-        println ' in another terminal to control recording:'
+        println ' In another terminal:'
         println ''
-        println "   Start recording:"
-        println "     echo START > ${cmdPath} && kill -3 \$(pgrep -f VegaServer)"
-        println ''
-        println "   Save recording and stop:"
-        println "     echo 'SAVE_AND_STOP vega.undo' > ${cmdPath} && kill -3 \$(pgrep -f VegaServer)"
+        println "   Start:  echo START > ${cmdPath} && kill -3 \$(pgrep -f VegaServer)"
+        println "   Save:   echo 'SAVE_AND_STOP vega.undo' > ${cmdPath} && kill -3 \$(pgrep -f VegaServer)"
         println '============================================================'
-        println ''
     }
 }

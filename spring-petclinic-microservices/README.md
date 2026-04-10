@@ -23,7 +23,7 @@ The API Gateway and Customers Service are instrumented with UndoLR for on-demand
 
 - Java 8+
 - Maven 3.6+
-- Undo LiveRecorder (`LR4J_HOME` pointing to the directory containing `lr4j-record-1.0/`)
+- Undo LiveRecorder (`LR4J_HOME` pointing to your lr4j installation directory)
 - Docker and docker compose (optional, for Zipkin distributed tracing)
 
 ## Build
@@ -31,7 +31,7 @@ The API Gateway and Customers Service are instrumented with UndoLR for on-demand
 **First-time setup**: Copy the LiveRecorder API JAR from your Undo installation:
 
 ```bash
-cp ${LR4J_HOME}/lr4j-record-1.0/lr4j_api-1.1.jar .
+cp ${LR4J_HOME}/lib/lr4j_api-1.1.jar .
 ```
 
 This JAR is required for the recording control API used by the instrumented services.
@@ -103,8 +103,8 @@ With Undo's time-travel debugger you can:
 
 Start two replay sessions:
 ```bash
-lr4j-replay-1.0/lr4j/lr4j_replay --input api-gateway.undo --port 9000
-lr4j-replay-1.0/lr4j/lr4j_replay --input customers-service.undo --port 9001
+$LR4J_HOME/bin/lr4j_replay --input api-gateway.undo --port 9000
+$LR4J_HOME/bin/lr4j_replay --input customers-service.undo --port 9001
 ```
 
 In IntelliJ, create two Remote JVM Debug configurations:
@@ -135,5 +135,5 @@ Recording is controlled via REST endpoints added to `OwnerResource.java` and `Ap
 
 The `scripts/run_all.sh` script starts the instrumented services with the required JVM arguments:
 ```
--XX:-Inline -XX:TieredStopAtLevel=1 -agentpath:${LR4J_HOME}/lr4j-record-1.0/lr4j_agent_x64.so
+-XX:-Inline -XX:TieredStopAtLevel=1 -XX:UseAVX=2 -agentpath:${LR4J_HOME}/agent/lr4j_agent_x64.so
 ```

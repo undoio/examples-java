@@ -30,8 +30,9 @@ tasks.register('runRecord', JavaExec) {
         }
         def arch = System.getProperty('os.arch')
         def lib = arch == 'aarch64' ? 'lr4j_agent_arm64.so' : 'lr4j_agent_x64.so'
-        def agent = "${lr4jHome}/lr4j-record-1.0/${lib}"
-        jvmArgs "-javaagent:${agent}=save_on=exit"
+        def agent = "${lr4jHome}/agent/${lib}"
+        jvmArgs "-XX:-Inline", "-XX:TieredStopAtLevel=1", "-XX:UseAVX=2",
+                "-agentpath:${agent}=save_on=exit"
     }
 }
 

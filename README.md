@@ -18,14 +18,29 @@ gradle compileJava   # Gradle
 
 Each demo can be run with either Maven or Gradle:
 
-| Demo | What it demonstrates |
-|------|---------------------|
-| ConcurrentModificationExceptionDemo | Multi-threaded modification of a shared ArrayList causes ConcurrentModificationException |
-| ReentrantModificationExceptionDemo | Single-threaded reentrant modification via synchronized callbacks - all methods are synchronized yet it still throws ConcurrentModificationException |
-| WaitNotifyDemo | Producer silently stops calling notify(), leaving its consumer stuck in wait() forever. Hard to debug because the stuck thread's stack just shows wait() with no clue why |
-| WheresWally | Hides "Wally" among 5,000 generated names, writes to stdout and a temp file. Simple target for demonstrating precise execution navigation and syscall analysis |
-| MixedHotspot | Four distinct CPU workloads (prime sieve, SHA-256, string/regex, array sorting) that produce different signatures in Java and native profilers |
-| [Vega](vega/) | Multi-threaded options analytics engine — simulates exchange feeds, computes implied volatility via Black-Scholes, and maintains live vol surfaces. Contains an intentional bisection convergence bug for time-travel debugging |
+- **ConcurrentModificationExceptionDemo** — Multi-threaded modification of a
+  shared ArrayList causes ConcurrentModificationException.
+
+- **ReentrantModificationExceptionDemo** — Single-threaded reentrant
+  modification via synchronized callbacks. All methods are synchronized yet
+  it still throws ConcurrentModificationException.
+
+- **WaitNotifyDemo** — Producer silently stops calling notify(), leaving its
+  consumer stuck in wait() forever. Hard to debug because the stuck thread's
+  stack just shows wait() with no clue why.
+
+- **WheresWally** — Hides "Wally" among 5,000 generated names, writes to
+  stdout and a temp file. Simple target for precise execution navigation and
+  syscall analysis.
+
+- **MixedHotspot** — Four distinct CPU workloads (prime sieve, SHA-256,
+  string/regex, array sorting) that produce different signatures in Java and
+  native profilers.
+
+- **[Vega](vega/)** — Multi-threaded options analytics engine. Simulates
+  exchange feeds, computes implied volatility via Black-Scholes, and maintains
+  live vol surfaces. Contains an intentional bisection convergence bug for
+  time-travel debugging.
 
 ### Running a demo
 
@@ -70,7 +85,7 @@ On arm64, override the agent library path:
 
 ```bash
 # Maven
-mvn compile exec:exec -Precord -Dlr4j.agent=$LR4J_HOME/lr4j-record-1.0/lr4j_agent_arm64.so \
+mvn compile exec:exec -Precord -Dlr4j.agent=$LR4J_HOME/agent/lr4j_agent_arm64.so \
     -Dexec.mainClass=io.undo.demos.WheresWally
 
 # Gradle (auto-detected)
@@ -88,7 +103,7 @@ tell it to.
 **Maven:**
 ```bash
 cd vega
-mvn compile exec:exec -Precord
+mvn compile exec:exec -Precord > vega.log 2>&1 &
 ```
 
 **Gradle:**
@@ -97,23 +112,21 @@ cd vega
 gradle runRecord
 ```
 
-The command file path is printed on startup (Gradle) or is
-`vega_cmd.txt` in the project directory (Maven).
+Log output is written to `vega/vega.log`. The command file is
+`vega/vega_cmd.txt`.
 
 **2. Wait for steady state** (a few seconds for feeds to start publishing).
 
 **3. Start recording:**
 ```bash
-echo START > /path/to/command_file.txt
-kill -3 $(pgrep -f VegaServer)
+echo START > vega_cmd.txt && kill -3 $(pgrep -f VegaServer)
 ```
 
 **4. Let it run** for 10-30 seconds to capture the bug.
 
 **5. Save the recording and stop:**
 ```bash
-echo 'SAVE_AND_STOP vega.undo' > /path/to/command_file.txt
-kill -3 $(pgrep -f VegaServer)
+echo 'SAVE_AND_STOP vega.undo' > vega_cmd.txt && kill -3 $(pgrep -f VegaServer)
 ```
 
 The `kill -3` sends SIGQUIT, which tells the lr4j agent to read the command
@@ -145,7 +158,7 @@ convert it first:
 ```bash
 claude mcp add DemoName \
     -e BRIDGELOG=DemoName-bridge.log \
-    -- $LR4J_HOME/lr4j-replay-1.0/lr4j/lr4j_mcp \
+    -- $LR4J_HOME/bin/lr4j_mcp \
     --input DemoName.undo \
     --key /path/to/license.pem
 ```
@@ -236,7 +249,7 @@ automatically diagnose the WaitNotifyDemo bug from a recording.
 ### Running
 
 ```bash
-cd /path/to/lr4j-replay-1.0/lr4j
+cd $LR4J_HOME
 export PYTHONPATH=demos/python
 
 python3 /path/to/java-demos/scripts/wait_notify_simple.py \

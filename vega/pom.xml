@@ -104,7 +104,7 @@
         <profile>
             <id>record</id>
             <properties>
-                <lr4j.agent>${env.LR4J_HOME}/lr4j-record-1.0/lr4j_agent_x64.so</lr4j.agent>
+                <lr4j.agent>${env.LR4J_HOME}/agent/lr4j_agent_x64.so</lr4j.agent>
             </properties>
             <build>
                 <plugins>
@@ -114,7 +114,10 @@
                         <version>3.1.0</version>
                         <configuration>
                             <arguments>
-                                <argument>-javaagent:${lr4j.agent}=command_filename=${project.basedir}/vega_cmd.txt</argument>
+                                <argument>-XX:-Inline</argument>
+                                <argument>-XX:TieredStopAtLevel=1</argument>
+                                <argument>-XX:UseAVX=2</argument>
+                                <argument>-agentpath:${lr4j.agent}=command_filename=${project.basedir}/vega_cmd.txt</argument>
                                 <argument>-classpath</argument>
                                 <classpath/>
                                 <argument>io.undo.test.vega.server.VegaServer</argument>

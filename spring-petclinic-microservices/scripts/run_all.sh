@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 if [[ -z "${LR4J_HOME}" ]]; then
-    echo "You must set the LR4J_HOME env var to point to the directory containing 'lr4j-record-1.0/lr4j_agent_x64.so'"
+    echo "You must set the LR4J_HOME env var to point to the directory containing 'agent/lr4j_agent_x64.so'"
     exit
-elif [ ! -f ${LR4J_HOME}/lr4j-record-1.0/lr4j_agent_x64.so ]; then
-    echo "'${LR4J_HOME}/lr4j-record-1.0/lr4j_agent_x64.so' not found!"
+elif [ ! -f ${LR4J_HOME}/agent/lr4j_agent_x64.so ]; then
+    echo "'${LR4J_HOME}/agent/lr4j_agent_x64.so' not found!"
     exit
 fi
 
@@ -41,9 +41,9 @@ sleep 20
 nohup java -jar spring-petclinic-discovery-server/target/*.jar --server.port=8761 --spring.profiles.active=chaos-monkey > target/discovery-server.log 2>&1 &
 echo "Waiting for discovery server to start"
 sleep 20
-nohup java -XX:-Inline -XX:TieredStopAtLevel=1 -agentpath:${LR4J_HOME}/lr4j-record-1.0/lr4j_agent_x64.so -jar spring-petclinic-customers-service/target/*.jar --server.port=8081 --spring.profiles.active=chaos-monkey > target/customers-service.log 2>&1 &
+nohup java -XX:-Inline -XX:TieredStopAtLevel=1 -XX:UseAVX=2 -agentpath:${LR4J_HOME}/agent/lr4j_agent_x64.so -jar spring-petclinic-customers-service/target/*.jar --server.port=8081 --spring.profiles.active=chaos-monkey > target/customers-service.log 2>&1 &
 nohup java -jar spring-petclinic-visits-service/target/*.jar --server.port=8082 --spring.profiles.active=chaos-monkey > target/visits-service.log 2>&1 &
 nohup java -jar spring-petclinic-vets-service/target/*.jar --server.port=8083 --spring.profiles.active=chaos-monkey > target/vets-service.log 2>&1 &
-nohup java -XX:-Inline -XX:TieredStopAtLevel=1 -agentpath:${LR4J_HOME}/lr4j-record-1.0/lr4j_agent_x64.so -jar spring-petclinic-api-gateway/target/*.jar --server.port=8080 --spring.profiles.active=chaos-monkey > target/gateway-service.log 2>&1 &
+nohup java -XX:-Inline -XX:TieredStopAtLevel=1 -XX:UseAVX=2 -agentpath:${LR4J_HOME}/agent/lr4j_agent_x64.so -jar spring-petclinic-api-gateway/target/*.jar --server.port=8080 --spring.profiles.active=chaos-monkey > target/gateway-service.log 2>&1 &
 echo "Waiting for apps to start"
 sleep 60

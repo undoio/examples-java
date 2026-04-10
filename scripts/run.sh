@@ -46,12 +46,12 @@ if $RECORD; then
     if [[ -z "${LR4J_HOME:-}" ]]; then
         echo "You must set LR4J_HOME to use --record"
         exit 1
-    elif [[ ! -f "${LR4J_HOME}/lr4j-record-1.0/lr4j_agent_x64.so" ]]; then
-        echo "'${LR4J_HOME}/lr4j-record-1.0/lr4j_agent_x64.so' not found!"
+    elif [[ ! -f "${LR4J_HOME}/agent/lr4j_agent_x64.so" ]]; then
+        echo "'${LR4J_HOME}/agent/lr4j_agent_x64.so' not found!"
         exit 1
     fi
     RECORDING="${DEMO}.undo"
-    AGENT_ARGS=(-XX:-Inline -XX:TieredStopAtLevel=1 -agentpath:${LR4J_HOME}/lr4j-record-1.0/lr4j_agent_x64.so=save_on=always,output=${RECORDING})
+    AGENT_ARGS=(-XX:-Inline -XX:TieredStopAtLevel=1 -XX:UseAVX=2 -agentpath:${LR4J_HOME}/agent/lr4j_agent_x64.so=save_on=always,output=${RECORDING})
 fi
 
 echo "Building..."

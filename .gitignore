@@ -11,3 +11,4 @@ vega_cmd.txt
 .settings/
 .classpath
 .project
+vega.log.*

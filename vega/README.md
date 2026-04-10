@@ -164,29 +164,27 @@ tell it to via a command file and SIGQUIT.
 
 ```bash
 # Maven
-mvn compile exec:exec -Precord
+mvn compile exec:exec -Precord > vega.log 2>&1 &
 
 # Gradle
 gradle runRecord
 ```
 
-The command file path is printed on startup (Gradle) or is `vega_cmd.txt` in
-the project directory (Maven). Set `LR4J_HOME` to your lr4j installation.
+Log output is written to `vega.log`. The command file is `vega_cmd.txt`.
+Set `LR4J_HOME` to your lr4j installation.
 
 **2. Wait for steady state** (a few seconds for feeds to start publishing).
 
 **3. Start recording:**
 ```bash
-echo START > /path/to/command_file.txt
-kill -3 $(pgrep -f VegaServer)
+echo START > vega_cmd.txt && kill -3 $(pgrep -f VegaServer)
 ```
 
 **4. Let it run** for 10-30 seconds to capture enough activity (including the bug).
 
 **5. Save the recording and stop:**
 ```bash
-echo 'SAVE_AND_STOP vega.undo' > /path/to/command_file.txt
-kill -3 $(pgrep -f VegaServer)
+echo 'SAVE_AND_STOP vega.undo' > vega_cmd.txt && kill -3 $(pgrep -f VegaServer)
 ```
 
 `kill -3` sends SIGQUIT, which tells the lr4j agent to read the command file.
@@ -203,23 +201,32 @@ application using the steps above, then register the recording:
 ```bash
 claude mcp add VegaServer \
     -e BRIDGELOG=VegaServer-bridge.log \
-    -- $LR4J_HOME/lr4j-replay-1.0/lr4j/lr4j_mcp \
+    -- $LR4J_HOME/bin/lr4j_mcp \
     --input VegaServer.undo \
     --key /path/to/license.pem
 ```
 
 Then launch `claude` and ask:
 
-> You have access to a recording of a Java application called Vega — a
-> real-time options analytics engine. Something is going wrong at runtime
-> but we're not sure what. Start by reading the console output to understand
-> what the application is doing and look for anything suspicious. Then use
-> the time-travel debugging tools to work backwards from any anomalies you
-> find to identify the root cause in the source code.
+```
+You have access to a recording of a Java application called Vega — a
+real-time options analytics engine. Something is going wrong at runtime
+but we're not sure what. Start by reading the console output to understand
+what the application is doing and look for anything suspicious. Then use
+the time-travel debugging tools to work backwards from any anomalies you
+find to identify the root cause in the source code. Start your investigation
+at the end of the recording.
+```
+
+or alternatively
+```
+Look at the console output and see if you can find any warnings. If so start at the end of the recording and work backwards to find the root cause.
+```
 
 Claude will discover the suspicious IV warnings, trace them back through the
 vol worker into the bisection method, and identify the swapped convergence
-bounds.
+bounds. Note that depending on its mood, Claude will sometimes go direct to
+the bisection method!
 
 ## Project Structure
 
