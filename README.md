@@ -10,6 +10,18 @@ examples. `cd` into a demo directory to build, run, record, and debug.
 
 - Java 8+
 - Maven 3.6+ or Gradle 7+
+- **JVM debug symbols** — required for Undo recordings to replay correctly.
+  Many OpenJDK packages ship without native debug symbols, or install them
+  as a separate package. Run the checker script to verify:
+  ```bash
+  ./scripts/check-jvm-debug-symbols-sa.sh
+  ```
+  If symbols are missing, install the debug symbols package for your JDK:
+  ```bash
+  sudo apt-get install openjdk-<version>-dbg        # Debian/Ubuntu
+  sudo yum debuginfo-install java-<version>-openjdk  # RHEL/Fedora
+  ```
+  Or use a JDK build that includes debug symbols by default (e.g. Adoptium Temurin).
 
 ## Demos
 
