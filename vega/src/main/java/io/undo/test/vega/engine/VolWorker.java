@@ -178,11 +178,7 @@ public class VolWorker implements MessageBus.Subscriber<OptionQuote>, Runnable {
             long computeNanos = System.nanoTime() - startNanos;
 
             if (Double.isNaN(iv) || iv <= 0 || iv > 2.0) {
-                LOG.warn(
-                        "Worker [{}]: suspicious IV={} for {}",
-                        workerId,
-                        String.format("%.4f", iv),
-                        bid.getOptionSymbol());
+                LOG.warn("Worker [{}]: suspicious IV={} for {}", workerId, String.format("%.4f", iv), bid.getOptionSymbol());
                 errorCount.incrementAndGet();
                 return;
             }

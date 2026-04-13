@@ -72,6 +72,12 @@ internal pub/sub messaging, and lightweight management protocols.
 - Java 8 or later
 - Maven 3.6+ or Gradle 7+
 
+## Opening in IntelliJ
+
+When importing the `vega` directory into IntelliJ, select **Import project from
+external model → Gradle** (or Maven) so that dependencies are resolved
+correctly.
+
 ## Building
 
 ```bash
@@ -191,6 +197,18 @@ echo 'SAVE_AND_STOP vega.undo' > vega_cmd.txt && kill -3 $(pgrep -f VegaServer)
 `START` begins recording and `SAVE_AND_STOP` writes the recording to disk.
 This is the same mechanism used in production to capture snapshots of
 long-running services without restarting them.
+
+### Replaying a Recording
+
+To replay a recording in IntelliJ with the Undo plugin, start a replay server
+and connect to it:
+
+```bash
+$LR4J_HOME/bin/lr4j_replay --input vega.undo --port 9000
+```
+
+Then in IntelliJ, create a **Remote JVM Debug** run configuration pointing at
+port 9000.
 
 ### Debugging with Claude Code
 
