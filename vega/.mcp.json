@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "VegaServer": {
+      "command": "${LR4J_HOME}/bin/lr4j_mcp",
+      "args": ["--input", "vega.undo", "--key", "${LR4J_KEY:-/home/ubuntu/test_key.key}"]
+    }
+  }
+}
