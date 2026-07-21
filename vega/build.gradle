@@ -42,8 +42,16 @@ tasks.register('runRecord', JavaExec) {
 
         def cmdPath = "${project.projectDir}/vega_cmd.txt"
         def logFile = file("${project.projectDir}/vega.log")
-        jvmArgs "-XX:-Inline", "-XX:TieredStopAtLevel=1", "-XX:UseAVX=2",
-                "-agentpath:${agent}=command_filename=${cmdPath}"
+        // -XX:TieredStopAtLevel=1 caps JIT compilation at C1, disabling the C2
+        // compiler. Used by default; allow C2 with:  gradle runRecord -PdisableC2=false
+        def disableC2 = !project.hasProperty('disableC2') || project.property('disableC2').toBoolean()
+        def recordArgs = ["-XX:-Inline"]
+        if (disableC2) {
+            recordArgs << "-XX:TieredStopAtLevel=1"
+        }
+        recordArgs += ["-XX:UseAVX=2",
+                "-agentpath:${agent}=command_filename=${cmdPath}"]
+        jvmArgs recordArgs
         standardOutput = new FileOutputStream(logFile)
         errorOutput = standardOutput
 

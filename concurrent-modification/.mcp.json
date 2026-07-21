@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "ConcurrentModification": {
-      "command": "${LR4J_HOME}/bin/lr4j_mcp",
-      "args": ["--input", "ConcurrentModificationExceptionDemo.undo", "--key", "${LR4J_KEY:-/home/ubuntu/test_key.key}"]
+      "command": "${LR4J_HOME}/bin/lr4j_mcp_server",
+      "args": ["--key", "${LR4J_KEY:-/home/ubuntu/test_key.key}"]
     }
   }
 }

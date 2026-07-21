@@ -137,3 +137,9 @@ The `scripts/run_all.sh` script starts the instrumented services with the requir
 ```
 -XX:-Inline -XX:TieredStopAtLevel=1 -XX:UseAVX=2 -agentpath:${LR4J_HOME}/agent/lr4j_agent_x64.so
 ```
+
+`-XX:TieredStopAtLevel=1` caps JIT compilation at C1, disabling the C2 compiler. It is
+used by default; set `DISABLE_C2=false` to allow C2:
+```
+DISABLE_C2=false ./scripts/run_all.sh
+```

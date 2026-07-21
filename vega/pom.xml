@@ -20,6 +20,10 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- -XX:TieredStopAtLevel=1 caps JIT compilation at C1, disabling the C2
+             compiler. Used by default; allow C2 with:
+               mvn -Precord -DdisableC2=false exec:exec -->
+        <disableC2.arg>-XX:TieredStopAtLevel=1</disableC2.arg>
         <log4j.version>1.2.17</log4j.version>
         <slf4j.version>1.7.36</slf4j.version>
     </properties>
@@ -115,7 +119,7 @@
                         <configuration>
                             <arguments>
                                 <argument>-XX:-Inline</argument>
-                                <argument>-XX:TieredStopAtLevel=1</argument>
+                                <argument>${disableC2.arg}</argument>
                                 <argument>-XX:UseAVX=2</argument>
                                 <argument>-agentpath:${lr4j.agent}=command_filename=${project.basedir}/vega_cmd.txt</argument>
                                 <argument>-classpath</argument>
@@ -127,6 +131,20 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <!-- Activated by -DdisableC2=false: drops -XX:TieredStopAtLevel=1 so the
+             C2 compiler runs during recording. -->
+        <profile>
+            <id>allow-c2</id>
+            <activation>
+                <property>
+                    <name>disableC2</name>
+                    <value>false</value>
+                </property>
+            </activation>
+            <properties>
+                <disableC2.arg>-Dlr4j.disableC2=false</disableC2.arg>
+            </properties>
         </profile>
     </profiles>
 </project>
